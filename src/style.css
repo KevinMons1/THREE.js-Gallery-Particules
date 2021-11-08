@@ -1,0 +1,24 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.webgl1 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+}
+
+.ctx {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}

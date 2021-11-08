@@ -1,0 +1,25 @@
+{
+  "name": "threejs-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel src/index.html"
+  },
+  "staticFiles": {
+    "staticPath": "public",
+    "watcherGlob": "**"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dat.gui": "^0.7.7",
+    "parcel": "^2.0.0",
+    "three": "^0.134.0"
+  },
+  "devDependencies": {
+    "@parcel/transformer-glsl": "^2.0.0",
+    "parcel-plugin-static-files-copy": "^2.6.0"
+  }
+}
