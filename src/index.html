@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="./style.css">
+    <title>Canvas particules effect</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap" rel="stylesheet">
 </head>
 <body>
+
+    <main>
+        <p class="name">"La nuit étoilé" <br> Van Gogh</p>
+        <canvas class="webgl1"></canvas>
+        <canvas class="ctx" width="960" height="540"></canvas>
+    </main>
+
+    <footer>
+        <p>inspired by <a target="_blank" href="https://wepresent.wetransfer.com/story/marina-abramovic-traces/">wepresent</a></p>
+    </footer>
     
-    <canvas class="webgl1"></canvas>
-    <canvas class="ctx" width="960" height="540"></canvas>
     <script src="./index.js" type="module"></script>
 </body>
 </html>

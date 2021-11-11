@@ -9,6 +9,30 @@ html, body {
     overflow: hidden;
 }
 
+.name {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    color: #fff;
+    font-size: 50px;
+    font-family: 'Nanum Myeongjo', serif;
+    z-index: 10;
+}
+
+footer {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+footer > p > a, footer > p {
+    color: #fff;
+    font-size: 25px;
+    font-family: 'Nanum Myeongjo', serif;
+}
+
 .webgl1 {
     position: fixed;
     top: 0;

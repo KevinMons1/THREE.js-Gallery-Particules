@@ -1,6 +1,4 @@
 import * as THREE from "three"
-import * as dat from 'dat.gui'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertexShaderPoint from "./Shaders/vertexPoint.glsl"
 import fragmentShaderPoint from "./Shaders/fragmentPoint.glsl"
 
@@ -10,8 +8,6 @@ let dataImage = []
 // Base
 //-------------------------------------------------------------------------
 
-// Debug
-const gui = new dat.GUI()
 
 // Canvas
 const canvas = document.querySelector(".webgl1")
@@ -59,7 +55,7 @@ const createParticules = () => {
     const count = dataImage.data.length * 0.2
     let positions = new Float32Array(count * 3)
     let colors = new Float32Array(count * 4)
-    let typeColor = new Float32Array(count) // for blue group, brown group and yellow group
+    let puissanceByColor = new Float32Array(count) // for blue group, brown group and yellow group
     let positionZ = new Float32Array(count)
     let lineFinish = 0
     let newLine = 0
@@ -88,21 +84,21 @@ const createParticules = () => {
         colors[i4 + 3] = alpha
 
         // Positions
-        if (colors[i4] < 0.5 && colors[i4 + 2] > 0.3) { // Blue
-            positions[i3 + 2] = randomPosition(0.2) - 0.5
-            colors[i4 + 2] += 0.2 // up Blue just for style
-            typeColor[i] = 1.5
+        if (colors[i4] < 0.8 && colors[i4 + 2] > 0.2) { // Blue
+            positions[i3 + 2] = randomPosition(0.07) - 0.2
+            puissanceByColor[i] = 2.25
+            colors[i4] += 0.05
+            colors[i4 + 1] += 0.0
+            colors[i4 + 2] += 0.3
         } else if (colors[i4] > 0.6) { // Yellow
-            positions[i3 + 2] = (randomPosition(0.2) + 0.2) - 0.5
-            typeColor[i] = 1.2
-        } else if (!(colors[i4 + 1] < 0.019)) { // Brown
-            positions[i3 + 2] = (randomPosition(0.2) + 0.4) - 0.5
-            typeColor[i] = 1.0
+            positions[i3 + 2] = randomPosition(0.07) - 0.1
+            puissanceByColor[i] = 2.15
+        } else { // Brown
+            positions[i3 + 2] = randomPosition(0.07) 
+            puissanceByColor[i] = 2
         } 
         
-        positionZ[i] = positions[i3 + 2] - 0.5
-
-        // positions[i3 + 2] = randomPosition(0.2) - 0.5
+        positionZ[i] = positions[i3 + 2] - 0.2
         positions[i3] = (lineFinish * 0.005) - (4.8 / 2) // 4.8 / 2 is the middle with calculte 960 * 0.005 -> 960 is max lineFinish value
         positions[i3 + 1] =  ((- 0.005) * newLine) + (2.16 / 2) // 2.16 / 2 is the middle with calculte 432 * 0.005 -> 432 is max newLine value
 
@@ -110,7 +106,7 @@ const createParticules = () => {
 
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
     geometry.setAttribute("aColor", new THREE.BufferAttribute(colors, 4))
-    geometry.setAttribute("aPuissanceMove", new THREE.BufferAttribute(typeColor, 1))
+    geometry.setAttribute("aPuissance", new THREE.BufferAttribute(puissanceByColor, 1))
     geometry.setAttribute("aPositionZ", new THREE.BufferAttribute(positionZ, 1))
 
     material = new THREE.ShaderMaterial({
@@ -119,7 +115,7 @@ const createParticules = () => {
         vertexShader: vertexShaderPoint,
         fragmentShader: fragmentShaderPoint,
         uniforms: {
-            uSize: { value: 1.0 }, // 1.25
+            uSize: { value: 1.5 },
             uTime: { value: 0.0 },
             uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
             uMove: { value: 0.0 }
@@ -166,12 +162,6 @@ const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 
 camera.position.set(0, 0, 2)
 scene.add(camera)
 
-// Controls
-const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
-controls.enableZoom = true
-
-
 //-------------------------------------------------------------------------
 // Renderer
 //-------------------------------------------------------------------------
@@ -190,52 +180,49 @@ const clock = new THREE.Clock()
 let isClick = true
 let timeout
 let moveI = 0
-
-//! Essayes de réguler les vitesse pour que d'abord l'arbre soit devant, puis le jaune puis le bleu et qu'un moment tout s'aligne parfaitement
-//! donc logiquement, ceux derière devront avancer plus vite
-//! Adapter la vitesse -> faire un ease début vite puis lent
-//! Pour la vitesse pour qu'ils s'alignent enregistrer en attribute sa position z selon 0
+let puissanceI = 0.1
 
 const animationMove = (front) => {
+    if (front) puissanceI = 0.1
     timeout = setTimeout(() => {
-        moveI = front ? moveI + 0.01 : moveI - 0.01
+        moveI = front ? moveI + 0.005 : moveI - (0.003 * puissanceI)
         material.uniforms.uMove.value = moveI
 
-        if (!front && moveI <= 0) return
-        if (front && moveI <= 1.2) animationMove(true)
+        if (!front && moveI <= 0) {
+            moveI = 0
+            return
+        }
+        if (front && moveI <= 0.7) animationMove(true)
         if (!front && moveI >= 0) animationMove(false)
 
         console.log(moveI)
+        if (!front && puissanceI <= 0.7) puissanceI += 0.01
     }, 20)
 }
 
 // Click start
-window.addEventListener("mousedown", e => {
+window.addEventListener("mousedown", () => {
     if (isClick && canUpdate) {
         clearTimeout(timeout)
-        if (moveI <= 1.2 && moveI >= 0) animationMove(true)
+        if (moveI <= 0.7 && moveI >= 0) animationMove(true)
     }
     isClick = false
 })
 
 // Click end
-window.addEventListener("mouseup", e => {
+window.addEventListener("mouseup", () => {
     clearTimeout(timeout)
     if (moveI >= 0) animationMove(false)
     isClick = true
 })
 
-const update = () =>
-{
+const update = () => {
     const elapsedTime = clock.getElapsedTime()
 
     // Update material
     if (canUpdate) {
         material.uniforms.uTime.value = elapsedTime
     }
-
-    // Update controls
-    controls.update()
 
     // Render
     renderer.render(scene, camera)
