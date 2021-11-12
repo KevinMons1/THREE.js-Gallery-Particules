@@ -4,6 +4,8 @@ import vertexShaderPoint from "./Shaders/vertexPoint.glsl"
 import fragmentShaderPoint from "./Shaders/fragmentPoint.glsl"
 
 const footer = document.querySelector("footer")
+const modal = document.querySelector(".modal")
+const modalClose = document.querySelector(".modal-close")
 const cursor = document.querySelector(".cursor")
 const titleContent = document.querySelector(".title-content")
 const overlayShadow = document.querySelector(".overlay-shadow")
@@ -26,6 +28,15 @@ const canvasCtx = document.querySelector(".ctx")
 
 // Scene
 const scene = new THREE.Scene()
+
+// Message if phone
+const messageForPhone = () => {
+    if (tactileDetected) {
+        modal.style.visibility = "visible"
+    }
+    modalClose.addEventListener("click", () => modal.style.visibility = "hidden")
+}
+messageForPhone()
 
 //-------------------------------------------------------------------------
 // Textures
@@ -257,13 +268,13 @@ const animationMove = (front) => {
 
 // Click start event
 canvas.addEventListener("mousedown", () => {
-    if (isClick && isLoaded && !tactileDetected) moveFront()
+    if (isClick && isLoaded) moveFront()
     isClick = false
 })
 
 // Click end event
 canvas.addEventListener("mouseup", () => {
-    if (!tactileDetected) moveBack()
+    moveBack()
 })
 
 // Touch start event
