@@ -28,11 +28,57 @@ html, body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: inset 0px 0px 55vw 30vw rgba(0,0,0,0.8);
+    box-shadow: inset 0px 0px 40vw 30vw rgba(0,0,0,0.8);
     border-radius: 100%;
     z-index: 9;
     pointer-events: none;
     outline: none;
+}
+
+.loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: loading 3s linear infinite;
+    overflow: hidden;
+    z-index: 100;
+}
+
+.loader-bg {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    z-index: 99;
+    pointer-events: none;
+}
+
+.loader-message {
+    position: absolute;
+    left: 50%;
+    top: 70%;
+    color: #fff;
+    font-size: 50px;
+    font-family: 'Nanum Myeongjo', serif;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.loader-message-hide {
+    position: absolute;
+    width: 100vw;
+    height: 200px;
+    left: 50%;
+    top: calc(70% + 150px);
+    transform: translate(-50%, -50%);
+    background-color: black;
+    z-index: 101;
+    pointer-events: none;
 }
 
 .title-content {
@@ -75,4 +121,14 @@ footer > p > a, footer > p {
 .ctx {
     visibility: hidden;
     pointer-events: none;
+}
+
+@keyframes loading {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    } 
 }

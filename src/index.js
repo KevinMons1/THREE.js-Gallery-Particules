@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { gsap, Power1 } from "gsap"
 import vertexShaderPoint from "./Shaders/vertexPoint.glsl"
 import fragmentShaderPoint from "./Shaders/fragmentPoint.glsl"
 
@@ -6,6 +7,13 @@ const footer = document.querySelector("footer")
 const cursor = document.querySelector(".cursor")
 const titleContent = document.querySelector(".title-content")
 const overlayShadow = document.querySelector(".overlay-shadow")
+const loader = document.querySelector(".loader")
+const loaderImg = document.querySelector(".loader-img").src = "image.jpg"
+const loaderBg = document.querySelector(".loader-bg")
+const loaderMessage = document.querySelector(".loader-message")
+const loaderMessageHide = document.querySelector(".loader-message-hide")
+let tactileDetected = window.innerWidth < 768
+let isLoaded = false
 let dataImage = []
 
 //-------------------------------------------------------------------------
@@ -49,7 +57,6 @@ const randomPosition = (max) => {
 }
 
 let materialParticules
-let canUpdate = false
 
 // Create particules
 const createParticules = () => {
@@ -129,7 +136,7 @@ const createParticules = () => {
     const points = new THREE.Points(geometryParticules, materialParticules)
 
     scene.add(points)
-    canUpdate = true
+    loaded()
 }
 
 //-------------------------------------------------------------------------
@@ -156,7 +163,7 @@ window.addEventListener('resize', () =>
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     // Update materialParticules
-    if (canUpdate) materialParticules.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2)
+    if (isLoaded) materialParticules.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2)
 })
 
 //-------------------------------------------------------------------------
@@ -192,20 +199,22 @@ titleContent.addEventListener("click", () => {
 
 // Show cursor
 canvas.addEventListener("mousemove", e => {
-    const x = e.clientX - (25 / 2)
-    const y = e.clientY - (25 / 2)
-    
-    canvas.style.cursor = "none"
-    cursor.style.transform = `translate(${x}px, ${y}px)`
-    
-    if (cursor.style.visibility === "" || cursor.style.visibility === "hidden") {
-        cursor.style.visibility = "visible"
+    if (!tactileDetected) {
+        const x = e.clientX - (25 / 2)
+        const y = e.clientY - (25 / 2)
+        
+        canvas.style.cursor = "none"
+        cursor.style.transform = `translate(${x}px, ${y}px)`
+        
+        if (cursor.style.visibility === "" || cursor.style.visibility === "hidden") {
+            cursor.style.visibility = "visible"
+        }
     }
 })
 
 // Hide cursor 
 const hideCursor = () => {
-    cursor.style.visibility = "hidden"
+    if (!tactileDetected) cursor.style.visibility = "hidden"
 }
 
 footer.addEventListener("mousemove", () => hideCursor())
@@ -224,7 +233,14 @@ let puissanceI = 0.01
 const animationMove = (front) => {
     if (front) puissanceI = 0.0
     timeout = setTimeout(() => {
-        moveI = front ? moveI + 0.005 : moveI - (0.003 * puissanceI)
+
+        if (front) { // Move to front
+
+            if (moveI <= 0.5) moveI += 0.009
+            else moveI += 0.003
+
+        } else moveI -= (0.003 * puissanceI) // Move to back
+
         materialParticules.uniforms.uMove.value = moveI
 
         if (!front && moveI <= 0) {
@@ -235,42 +251,94 @@ const animationMove = (front) => {
         if (!front && moveI >= 0) animationMove(false)
 
         if (!front && puissanceI <= 2.0) puissanceI += 0.02
+
     }, 20)
 }
 
-// Click start
+// Click start event
 canvas.addEventListener("mousedown", () => {
-    if (isClick && canUpdate) {
-        clearTimeout(timeout)
-        if (moveI <= 0.6 && moveI >= 0) animationMove(true)
-    }
+    if (isClick && isLoaded && !tactileDetected) moveFront()
     isClick = false
 })
 
-// Click end
+// Click end event
 canvas.addEventListener("mouseup", () => {
+    if (!tactileDetected) moveBack()
+})
+
+// Touch start event
+canvas.addEventListener("touchstart", () => {
+    if (isClick && isLoaded && tactileDetected) moveFront()
+    isClick = false
+})
+
+// Touch end event
+canvas.addEventListener("touchend", () => {
+    if (tactileDetected) moveBack()
+})
+
+// Move to front
+const moveFront = () => {
+    clearTimeout(timeout)
+    if (moveI <= 0.6 && moveI >= 0) animationMove(true)
+    else if (moveI > 0.6) moveI = 0.6
+}
+
+// Move to back
+const moveBack = () => {
     clearTimeout(timeout)
     if (moveI >= 0) animationMove(false)
     isClick = true
-})
+}
 
 // Light effect with cursor
 window.addEventListener("mousemove", e => {
-    if (canUpdate) {
+    if (isLoaded && !tactileDetected) {
         const x = - 50 + (e.clientX * 0.008)
         const y = - 50 + (e.clientY * 0.008)
-
-        console.log(x, y)
 
         overlayShadow.style.transform = `translate(${x}%, ${y}%)`
     }
 })
 
+// Loaded
+const loaded = () => {
+    isLoaded = true
+    setTimeout(() => {
+        // Hide message
+        gsap.to(loaderMessage, {
+            duration: 0.5,
+            y: 100,
+            ease: Power1.easeIn
+        })
+
+        // Stop rotate loader
+        gsap.to(loader, {
+            duration: 0.3,
+            opacity: 0
+        })
+
+        // Hidden message and block
+        setTimeout(() => {
+            loaderMessage.style.visibility = "hidden"
+            loaderMessageHide.style.visibility = "hidden"
+            loader.style.visibility = "hidden"
+
+            gsap.to(loaderBg, {
+                duration: 0.3,
+                opacity: 0
+            })
+        }, 500)
+        
+    
+    }, 250);
+}
+
 const update = () => {
     const elapsedTime = clock.getElapsedTime()
 
     // Update materialParticules
-    if (canUpdate) {
+    if (isLoaded) {
         materialParticules.uniforms.uTime.value = elapsedTime
     }
 
