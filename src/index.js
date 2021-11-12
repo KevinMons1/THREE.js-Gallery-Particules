@@ -2,12 +2,15 @@ import * as THREE from "three"
 import vertexShaderPoint from "./Shaders/vertexPoint.glsl"
 import fragmentShaderPoint from "./Shaders/fragmentPoint.glsl"
 
+const footer = document.querySelector("footer")
+const cursor = document.querySelector(".cursor")
+const titleContent = document.querySelector(".title-content")
+const overlayShadow = document.querySelector(".overlay-shadow")
 let dataImage = []
 
 //-------------------------------------------------------------------------
 // Base
 //-------------------------------------------------------------------------
-
 
 // Canvas
 const canvas = document.querySelector(".webgl1")
@@ -22,6 +25,7 @@ const scene = new THREE.Scene()
 
 let ctx = canvasCtx.getContext("2d");
 let img2D = new Image();
+img2D.src = "image.jpg";
 
 img2D.addEventListener("load", () => {
     console.log("load")
@@ -29,7 +33,6 @@ img2D.addEventListener("load", () => {
     dataImage = ctx.getImageData(0, 0, canvasCtx.width, canvasCtx.height)
     createParticules()
 })
-img2D.src = "./image.jpg";
 
 //-------------------------------------------------------------------------
 // Mesh
@@ -45,13 +48,13 @@ const randomPosition = (max) => {
     return Math.random() * max
 }
 
-let material
+let materialParticules
 let canUpdate = false
 
 // Create particules
 const createParticules = () => {
     // Geometry
-    const geometry = new THREE.BufferGeometry()
+    const geometryParticules = new THREE.BufferGeometry()
     const count = dataImage.data.length * 0.2
     let positions = new Float32Array(count * 3)
     let colors = new Float32Array(count * 4)
@@ -72,6 +75,7 @@ const createParticules = () => {
 
         lineFinish++
 
+        // Next Line
         if (lineFinish >= canvasCtx.width) {
             lineFinish = 0
             newLine++
@@ -85,17 +89,16 @@ const createParticules = () => {
 
         // Positions
         if (colors[i4] < 0.8 && colors[i4 + 2] > 0.2) { // Blue
-            positions[i3 + 2] = randomPosition(0.07) - 0.2
-            puissanceByColor[i] = 2.25
-            colors[i4] += 0.05
-            colors[i4 + 1] += 0.0
-            colors[i4 + 2] += 0.3
-        } else if (colors[i4] > 0.6) { // Yellow
-            positions[i3 + 2] = randomPosition(0.07) - 0.1
+            positions[i3 + 2] = randomPosition(0.1) - 0.2
             puissanceByColor[i] = 2.15
+            colors[i4 + 1] -= 0.05
+            colors[i4 + 2] += 0.4
+        } else if (colors[i4] > 0.6) { // Yellow
+            positions[i3 + 2] = randomPosition(0.1) - 0.3
+            puissanceByColor[i] = 2.25
         } else { // Brown
-            positions[i3 + 2] = randomPosition(0.07) 
-            puissanceByColor[i] = 2
+            positions[i3 + 2] = randomPosition(0.1) 
+            puissanceByColor[i] = 1.8
         } 
         
         positionZ[i] = positions[i3 + 2] - 0.2
@@ -104,26 +107,26 @@ const createParticules = () => {
 
     } 
 
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
-    geometry.setAttribute("aColor", new THREE.BufferAttribute(colors, 4))
-    geometry.setAttribute("aPuissance", new THREE.BufferAttribute(puissanceByColor, 1))
-    geometry.setAttribute("aPositionZ", new THREE.BufferAttribute(positionZ, 1))
+    // Attribute
+    geometryParticules.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+    geometryParticules.setAttribute("aColor", new THREE.BufferAttribute(colors, 4))
+    geometryParticules.setAttribute("aPuissance", new THREE.BufferAttribute(puissanceByColor, 1))
+    geometryParticules.setAttribute("aPositionZ", new THREE.BufferAttribute(positionZ, 1))
 
-    material = new THREE.ShaderMaterial({
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
+    // Material
+    materialParticules = new THREE.ShaderMaterial({
         vertexShader: vertexShaderPoint,
         fragmentShader: fragmentShaderPoint,
         uniforms: {
-            uSize: { value: 1.5 },
+            uSize: { value: 1.25 },
             uTime: { value: 0.0 },
             uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-            uMove: { value: 0.0 }
+            uMove: { value: 0.0 },
         }
     })
 
     // Point
-    const points = new THREE.Points(geometry, material)
+    const points = new THREE.Points(geometryParticules, materialParticules)
 
     scene.add(points)
     canUpdate = true
@@ -151,14 +154,16 @@ window.addEventListener('resize', () =>
     // Update renderer
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+    // Update materialParticules
+    if (canUpdate) materialParticules.uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2)
 })
 
 //-------------------------------------------------------------------------
 // Camera
 //-------------------------------------------------------------------------
 
-// Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(65, sizes.width / sizes.height, 0.1, 100)
 camera.position.set(0, 0, 2)
 scene.add(camera)
 
@@ -169,8 +174,42 @@ scene.add(camera)
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas
 })
+renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+//-------------------------------------------------------------------------
+// Redirect
+//-------------------------------------------------------------------------
+
+titleContent.addEventListener("click", () => {
+    window.open("https://github.com/KevinMons1/THREE.js-Gallery-Particules", "_blank").focus()
+})
+
+//-------------------------------------------------------------------------
+// Cursor
+//-------------------------------------------------------------------------
+
+// Show cursor
+canvas.addEventListener("mousemove", e => {
+    const x = e.clientX - (25 / 2)
+    const y = e.clientY - (25 / 2)
+    
+    canvas.style.cursor = "none"
+    cursor.style.transform = `translate(${x}px, ${y}px)`
+    
+    if (cursor.style.visibility === "" || cursor.style.visibility === "hidden") {
+        cursor.style.visibility = "visible"
+    }
+})
+
+// Hide cursor 
+const hideCursor = () => {
+    cursor.style.visibility = "hidden"
+}
+
+footer.addEventListener("mousemove", () => hideCursor())
+titleContent.addEventListener("mousemove", () => hideCursor())
 
 //-------------------------------------------------------------------------
 // Animate
@@ -180,48 +219,59 @@ const clock = new THREE.Clock()
 let isClick = true
 let timeout
 let moveI = 0
-let puissanceI = 0.1
+let puissanceI = 0.01
 
 const animationMove = (front) => {
-    if (front) puissanceI = 0.1
+    if (front) puissanceI = 0.0
     timeout = setTimeout(() => {
         moveI = front ? moveI + 0.005 : moveI - (0.003 * puissanceI)
-        material.uniforms.uMove.value = moveI
+        materialParticules.uniforms.uMove.value = moveI
 
         if (!front && moveI <= 0) {
             moveI = 0
             return
         }
-        if (front && moveI <= 0.7) animationMove(true)
+        if (front && moveI <= 0.6) animationMove(true)
         if (!front && moveI >= 0) animationMove(false)
 
-        console.log(moveI)
-        if (!front && puissanceI <= 0.7) puissanceI += 0.01
+        if (!front && puissanceI <= 2.0) puissanceI += 0.02
     }, 20)
 }
 
 // Click start
-window.addEventListener("mousedown", () => {
+canvas.addEventListener("mousedown", () => {
     if (isClick && canUpdate) {
         clearTimeout(timeout)
-        if (moveI <= 0.7 && moveI >= 0) animationMove(true)
+        if (moveI <= 0.6 && moveI >= 0) animationMove(true)
     }
     isClick = false
 })
 
 // Click end
-window.addEventListener("mouseup", () => {
+canvas.addEventListener("mouseup", () => {
     clearTimeout(timeout)
     if (moveI >= 0) animationMove(false)
     isClick = true
 })
 
+// Light effect with cursor
+window.addEventListener("mousemove", e => {
+    if (canUpdate) {
+        const x = - 50 + (e.clientX * 0.008)
+        const y = - 50 + (e.clientY * 0.008)
+
+        console.log(x, y)
+
+        overlayShadow.style.transform = `translate(${x}%, ${y}%)`
+    }
+})
+
 const update = () => {
     const elapsedTime = clock.getElapsedTime()
 
-    // Update material
+    // Update materialParticules
     if (canUpdate) {
-        material.uniforms.uTime.value = elapsedTime
+        materialParticules.uniforms.uTime.value = elapsedTime
     }
 
     // Render
