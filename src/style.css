@@ -159,6 +159,7 @@ footer {
 }
 
 footer > p > a, footer > p {
+    text-align: center;
     color: #fff;
     font-size: 25px;
     font-family: 'Nanum Myeongjo', serif;
@@ -184,4 +185,15 @@ footer > p > a, footer > p {
     100% {
         transform: translate(-50%, -50%) rotate(360deg);
     } 
+}
+
+/* Media-queries */
+@media screen and (max-width: 768px) {
+    .title {
+        font-size: 25px
+    }
+
+    footer > p > a, footer > p {
+        font-size: 20px;
+    }
 }
